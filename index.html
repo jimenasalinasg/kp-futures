@@ -513,6 +513,16 @@ function pick(kind, avoid) {
   return bags[kind].shift();
 }
 
+// Shuffle-bag picker for arbitrary text pools (quote, highlight, etc.), so each
+// generation gets a different one and none repeats until the pool is exhausted.
+const textBags = {};
+function bagPick(key, pool) {
+  if (!textBags[key] || textBags[key].length === 0) {
+    textBags[key] = makeBag(pool.length);
+  }
+  return pool[textBags[key].shift()];
+}
+
 function renderFront(type) {
   let item, cls;
   if (type === 'ext') { item = SIGNALS_EXT[current.ext]; cls='El mundo'; }
@@ -759,7 +769,7 @@ function localScenario(ext, field, bet) {
     "Tardamos años en entender que nuestra ventaja nunca fue la herramienta",
     "La pregunta dejó de ser quién cura el conocimiento y pasó a ser quién lo gobierna"
   ];
-  const quote = rand(quotes);
+  const quote = bagPick('quotes', quotes);
 
   // helper: first sentence of a card's description (ignores abbreviation dots like EE.UU.)
   const firstSentence = s => (s || "").split(/(?<=[a-z0-9»)])\.\s/)[0].replace(/\.?$/, ".");
@@ -791,9 +801,9 @@ function localScenario(ext, field, bet) {
     "el futuro del KP dependerá menos de lo que pueda hacer y más de lo que decida dejar de intentar."
   ];
 
-  const hl = rand(highlights);
-  const cons = rand(consequences);
-  const closer = rand(closers);
+  const hl = bagPick('highlights', highlights);
+  const cons = bagPick('consequences', consequences);
+  const closer = bagPick('closers', closers);
 
   // Paragraph 1 — the concrete news event in 2030, born from the field signal
   const p1 = `Una revisión interna del Banco confirmó esta semana lo que muchos sospechaban: ${lc(field.t)}. El hallazgo — que involucra a más de ${num} equipos y deja la plataforma oficial con apenas ${pct}% de adopción activa — llega en un 2030 donde ${lc(ext.t)} ya es la norma del sector.`;
