@@ -681,6 +681,12 @@ async function readFuture() {
   document.getElementById('loading').classList.add('show');
   document.getElementById('btn-read').disabled = true;
 
+  // Alternate evenly between a prosperous and a cautionary scenario.
+  const tone = bagPick('tone', ['prospero', 'critico']);
+  const toneInstruction = tone === 'prospero'
+    ? `TONO DEL ESCENARIO: PRÓSPERO. Escribe una buena noticia: un éxito, un logro, una transformación que salió bien. El Banco —o el sector— supo aprovechar estas señales y el resultado es positivo, aunque puedes dejar una tensión madura abierta (todo éxito trae nuevos retos). Optimista pero creíble, no ingenuo.`
+    : `TONO DEL ESCENARIO: CRÍTICO. Escribe una noticia que revela un problema, una tensión o un riesgo que se materializó. El Banco quedó expuesto o rezagado frente a estas señales. Provocador, sin resolverlo cómodamente.`;
+
   const prompt = `Eres un facilitador experto en futures design para el equipo del Knowledge Platform (KP) del Banco Interamericano de Desarrollo (IDB). El KP es un asistente de IA basado en RAG para el personal del IDB.
 
 Dos señales se cruzaron. Escribe un ARTÍCULO DE NOTICIA FICTICIO publicado en 2030 que sea la FUSIÓN de estas dos señales llevadas a su consecuencia — un escenario plausible que sirva como conversation starter estratégico:
@@ -688,7 +694,9 @@ Dos señales se cruzaron. Escribe un ARTÍCULO DE NOTICIA FICTICIO publicado en 
 EL MUNDO (señal externa, ${ext.cat}): ${ext.t}
 EL TERRENO (señal de campo IDB): ${field.t}
 
-El artículo es una noticia real de 2030 con un HECHO NOTICIOSO concreto (un hallazgo, una auditoría, un lanzamiento, una decisión, una crisis, un hito) que nace de fusionar las dos señales. La señal de campo es el corazón del hecho; la señal del mundo es el contexto que lo vuelve inevitable. Concreto y periodístico: cifras, nombres de áreas o cargos, una cita ficticia plausible. Hace visible una tensión real sobre qué llegó a ser el KP, sin resolverla. NO incluyas recomendaciones ni apuestas estratégicas — solo narra el escenario tal como ocurrió.
+${toneInstruction}
+
+El artículo es una noticia real de 2030 con un HECHO NOTICIOSO concreto que nace de fusionar las dos señales. La señal de campo es el corazón del hecho; la señal del mundo es el contexto que lo vuelve inevitable. Concreto y periodístico: cifras, nombres de áreas o cargos, una cita ficticia plausible. NO incluyas recomendaciones ni apuestas estratégicas — solo narra el escenario tal como ocurrió.
 
 Para comillas dentro del texto usa angulares («así»), nunca rectas.
 
@@ -709,7 +717,7 @@ Responde SOLO con JSON válido, sin markdown:
   try {
     parsed = await requestScenario(prompt, 2);
   } catch (err) {
-    parsed = localScenario(ext, field, bet);   // never leave the group empty-handed
+    parsed = localScenario(ext, field, bet, tone);   // never leave the group empty-handed
     offline = true;
   }
 
@@ -741,7 +749,8 @@ Responde SOLO con JSON válido, sin markdown:
 // ── Local generator (no API) ─────────────────────────────────
 // Composes a plausible 2030 news article from the three drawn cards and the
 // group's filled-in bet. Always available, so the workshop never stalls.
-function localScenario(ext, field, bet) {
+function localScenario(ext, field, bet, tone) {
+  tone = (tone === 'prospero' || tone === 'critico') ? tone : (Math.random() < 0.5 ? 'prospero' : 'critico');
   const lc = s => s.charAt(0).toLowerCase() + s.slice(1);
   const rand = a => a[Math.floor(Math.random() * a.length)];
 
@@ -762,48 +771,77 @@ function localScenario(ext, field, bet) {
   const date = `${Math.floor(Math.random()*27)+1} de ${rand(months)} de 2030`;
   const city = rand(cities);
 
-  const headlinePool = [
+  const headline = bagPick('headline_' + tone, tone === 'prospero' ? [
+    "El KP del BID se vuelve el motor de conocimiento más usado de la banca de desarrollo",
+    "Cómo el Banco convirtió el conocimiento disperso en su mayor ventaja",
+    "El Knowledge Platform del BID alcanza adopción récord y marca tendencia regional",
+    "El BID demuestra que una plataforma central puede potenciar —no frenar— a sus equipos",
+    "El conocimiento del Banco fluye por fin entre sectores, y los resultados se notan",
+    "El KP se reinventa como puente transversal y otros multilaterales toman nota"
+  ] : [
     "El BID audita los agentes de IA que su propio personal creó en secreto",
     "Una revisión interna deja al Knowledge Platform con mínima adopción activa",
     "El conocimiento del Banco se fugó de la plataforma oficial, revela un informe",
     "El BID enfrenta el dilema del conocimiento que vive fuera de sus sistemas",
     "Especialistas del Banco sistematizaron su saber sin pasar por el KP",
     "El futuro del conocimiento institucional del BID se juega fuera de la plataforma"
-  ];
-  const headline = rand(headlinePool);
+  ]);
 
-  const quotes = [
+  const quotes = tone === 'prospero' ? [
+    "No fue magia: dejamos de competir con la gente y empezamos a potenciarla",
+    "El conocimiento por fin se mueve a la velocidad de quien lo necesita",
+    "Cuando el KP se volvió el puente entre sectores, todo cambió",
+    "Aprendimos que nuestra ventaja no era guardar el conocimiento, sino conectarlo",
+    "Lo que parecía una amenaza terminó siendo el mejor combustible que tuvimos"
+  ] : [
     "Dejamos de preguntarnos cómo llenar la plataforma y empezamos a preguntarnos para qué existe",
     "El conocimiento no es el archivo: es lo que pasa cuando alguien lo usa en el momento justo",
     "Lo difícil no fue la tecnología, fue decidir qué soltar",
     "Tardamos años en entender que nuestra ventaja nunca fue la herramienta",
     "La pregunta dejó de ser quién cura el conocimiento y pasó a ser quién lo gobierna"
   ];
-  const quote = bagPick('quotes', quotes);
+  const quote = bagPick('quotes_' + tone, quotes);
 
   // helper: first sentence of a card's description (ignores abbreviation dots like EE.UU.)
   const firstSentence = s => (s || "").split(/(?<=[a-z0-9»)])\.\s/)[0].replace(/\.?$/, ".");
 
-  // A concrete news "hecho" seeded by the field signal, with a figure.
-  const pct = Math.floor(Math.random() * 40) + 18;
+  // Figures: prosperous -> high adoption/growth; critical -> low adoption.
+  const pct = tone === 'prospero' ? Math.floor(Math.random() * 25) + 68 : Math.floor(Math.random() * 30) + 18;
   const num = Math.floor(Math.random() * 380) + 40;
 
-  // Pools so each group's article reads differently — varied highlight, quote, consequence.
-  const highlights = [
+  const highlights = tone === 'prospero' ? [
+    "El conocimiento más valioso del Banco dejó de vivir en silos y empezó a circular donde se necesitaba.",
+    "Por primera vez, una decisión de plataforma logró sumar a los equipos en lugar de competir con ellos.",
+    "Lo que en otros lugares fragmentó el conocimiento, en el Banco terminó por unirlo.",
+    "El KP encontró su lugar: no como archivo, sino como el tejido que conecta a toda la institución.",
+    "El Banco convirtió una señal de riesgo en su mayor oportunidad de la década."
+  ] : [
     "El conocimiento más valioso del Banco se había sistematizado, pero de forma invisible, individual y sin garantías de continuidad.",
     "Lo que durante años fue una señal débil se había vuelto, sin que nadie lo decidiera, la forma real de trabajar.",
     "La plataforma oficial seguía existiendo, pero el conocimiento que importaba ya circulaba por otros canales.",
     "Nadie había tomado una mala decisión; simplemente cada quien resolvió su problema por su cuenta, y el agregado cambió al Banco.",
     "El Banco descubrió que su mayor activo de conocimiento se había vuelto, también, su punto ciego más grande."
   ];
-  const consequences = [
+  const consequences = tone === 'prospero' ? [
+    "Otras instituciones multilaterales ya enviaron misiones a estudiar cómo el Banco lo logró.",
+    "Los equipos que temían perder autonomía reportan que ahora trabajan más rápido y con más respaldo.",
+    "La adopción creció sin imposiciones: la gente usa el KP porque le resulta genuinamente útil.",
+    "El conocimiento que antes se perdía entre sectores hoy alimenta decisiones de toda la región.",
+    "Directivos reconocen que el éxito trajo un reto nuevo: sostener la calidad a esa escala."
+  ] : [
     "Directivos del área de Conocimiento reconocen que la plataforma ganó visibilidad institucional pero perdió la batalla de la utilidad cotidiana.",
     "El episodio reabrió una discusión incómoda sobre quién es realmente dueño del conocimiento del Banco.",
     "Algunas oficinas lo celebran como autonomía; otras lo viven como una pérdida silenciosa de memoria institucional.",
     "El área de gobernanza pidió tiempo para responder, consciente de que cualquier medida llega tarde.",
     "Por primera vez, el debate dejó de ser técnico y pasó a ser sobre confianza y control."
   ];
-  const closers = [
+  const closers = tone === 'prospero' ? [
+    "el reto ahora es mantener viva esa energía sin volver a centralizarlo todo.",
+    "queda la pregunta sana de hasta dónde puede escalar este modelo sin perder cercanía.",
+    "el Banco apuesta a que esta vez el conocimiento llegó para quedarse —y para moverse.",
+    "lo que viene es cuidar que el puente no se vuelva, con el tiempo, otro muro.",
+    "la institución mira el futuro con una confianza que hace años no tenía."
+  ] : [
     "la pregunta de fondo sigue abierta: qué llega a ser el KP cuando el conocimiento ya vive —y se mueve— en otra parte.",
     "queda una duda que nadie en el Banco se anima a responder en voz alta: ¿el KP es todavía necesario, o solo familiar?",
     "lo que está en juego no es la tecnología, sino qué papel le queda a una plataforma central en un mundo descentralizado.",
@@ -811,22 +849,28 @@ function localScenario(ext, field, bet) {
     "el futuro del KP dependerá menos de lo que pueda hacer y más de lo que decida dejar de intentar."
   ];
 
-  const hl = bagPick('highlights', highlights);
-  const cons = bagPick('consequences', consequences);
-  const closer = bagPick('closers', closers);
+  const hl = bagPick('highlights_' + tone, highlights);
+  const cons = bagPick('consequences_' + tone, consequences);
+  const closer = bagPick('closers_' + tone, closers);
 
-  // Paragraph 1 — the concrete news event in 2030, born from the field signal
-  const p1 = `Una revisión interna del Banco confirmó esta semana lo que muchos sospechaban: ${lc(field.t)}. El hallazgo — que involucra a más de ${num} equipos y deja la plataforma oficial con apenas ${pct}% de adopción activa — llega en un 2030 donde ${lc(ext.t)} ya es la norma del sector.`;
+  let p1, p2, p3, standfirst;
+  if (tone === 'prospero') {
+    p1 = `El Banco celebró esta semana un hito que pocos anticipaban: ${lc(field.t)} se transformó en una oportunidad, no en un problema. El cambio — que ya involucra a más de ${num} equipos y llevó la adopción activa del Knowledge Platform al ${pct}% — ocurre en un 2030 donde ${lc(ext.t)} es la norma del sector.`;
+    p2 = `${ext.d ? firstSentence(ext.d) : ""} En ese contexto, ${lc(field.d ? firstSentence(field.d) : field.t)} <strong>${hl}</strong> «${quote}», afirmó ${name}, ${role}.`;
+    p3 = `${cons} Por ahora, ${closer}`;
+    standfirst = `Un caso de éxito que ya inspira al sector: el Knowledge Platform alcanzó ${pct}% de adopción activa tras conectar el conocimiento entre equipos.`;
+  } else {
+    p1 = `Una revisión interna del Banco confirmó esta semana lo que muchos sospechaban: ${lc(field.t)}. El hallazgo — que involucra a más de ${num} equipos y deja la plataforma oficial con apenas ${pct}% de adopción activa — llega en un 2030 donde ${lc(ext.t)} ya es la norma del sector.`;
+    p2 = `${ext.d ? firstSentence(ext.d) : ""} En ese contexto, ${lc(field.d ? firstSentence(field.d) : field.t)} <strong>${hl}</strong> «${quote}», declaró ${name}, ${role}.`;
+    p3 = `${cons} Por ahora, ${closer}`;
+    standfirst = `Una revisión interna revela un patrón que el Banco ya no puede ignorar — y deja la plataforma oficial con apenas ${pct}% de adopción activa.`;
+  }
 
-  // Paragraph 2 — how the WORLD signal made it inevitable + a fictional quote (highlight varies)
-  const p2 = `${ext.d ? firstSentence(ext.d) : ""} En ese contexto, ${lc(field.d ? firstSentence(field.d) : field.t)} <strong>${hl}</strong> «${quote}», declaró ${name}, ${role}.`;
-
-  // Paragraph 3 — consequence and open tension (varies)
-  const p3 = `${cons} Por ahora, ${closer}`;
-
-  const standfirst = `Una revisión interna revela un patrón que el Banco ya no puede ignorar — y deja la plataforma oficial con apenas ${pct}% de adopción activa.`;
-
-  const questions = [
+  const questions = tone === 'prospero' ? [
+    `Si este futuro fuera real, ¿qué decisiones de hoy nos acercan a él?`,
+    `¿Qué tendría que ser cierto para que el KP llegue a este escenario?`,
+    `Todo éxito trae un riesgo nuevo. ¿Cuál sería el de este futuro, y cómo lo cuidamos?`
+  ] : [
     `Si este futuro fuera real, ¿lo que hacemos hoy con el KP construye hacia él o en su contra?`,
     `¿Qué tendríamos que empezar —o dejar— de hacer este trimestre frente a este escenario?`,
     `En este escenario alguien pierde algo. ¿Quién, y cómo lo acompañamos?`
