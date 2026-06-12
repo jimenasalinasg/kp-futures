@@ -692,6 +692,8 @@ El artículo es una noticia real de 2030 con un HECHO NOTICIOSO concreto (un hal
 
 Para comillas dentro del texto usa angulares («así»), nunca rectas.
 
+Si citas al gerente o jefe de la división de conocimiento, usa siempre el nombre «Lorena Rodríguez, Knowledge and Learning Division Chief». Otros personajes pueden tener nombres ficticios.
+
 Responde SOLO con JSON válido, sin markdown:
 {
   "outlet": "medio ficticio (ej: Development Wire)",
@@ -746,11 +748,19 @@ function localScenario(ext, field, bet) {
   const outlets = ["Development Wire", "El Observador Multilateral", "Knowledge Quarterly", "La Brújula del Desarrollo", "Señales · Conocimiento & Desarrollo"];
   const months = ["enero","febrero","marzo","abril","mayo","junio","julio","septiembre","octubre","noviembre"];
   const cities = ["Washington D.C.","Bogotá","Ciudad de Panamá","São Paulo","San José"];
-  const names = ["Lucía Mendoza","Andrés Felipe Rojas","Carla Ferreira","Diego Salinas","Mariana Quispe","Tomás Beltrán"];
-  const roles = ["líder de conocimiento del Banco","especialista sectorial","gerente de la división de conocimiento","coordinador regional"];
+  // Paired source: the Knowledge & Learning Division Chief is always Lorena Rodríguez.
+  const sources = [
+    { name: "Lorena Rodríguez", role: "Knowledge and Learning Division Chief del Banco" },
+    { name: "Andrés Felipe Rojas", role: "especialista sectorial del Banco" },
+    { name: "Carla Ferreira", role: "líder de un equipo de conocimiento sectorial" },
+    { name: "Diego Salinas", role: "coordinador regional de conocimiento" },
+    { name: "Mariana Quispe", role: "analista de la Oficina de Integridad Digital" }
+  ];
+  const source = sources[Math.floor(Math.random() * sources.length)];
+  const name = source.name, role = source.role;
 
   const date = `${Math.floor(Math.random()*27)+1} de ${rand(months)} de 2030`;
-  const name = rand(names), role = rand(roles), city = rand(cities);
+  const city = rand(cities);
 
   const headlinePool = [
     "El BID audita los agentes de IA que su propio personal creó en secreto",
