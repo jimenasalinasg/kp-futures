@@ -768,20 +768,47 @@ function localScenario(ext, field, bet) {
   const pct = Math.floor(Math.random() * 40) + 18;
   const num = Math.floor(Math.random() * 380) + 40;
 
+  // Pools so each group's article reads differently — varied highlight, quote, consequence.
+  const highlights = [
+    "El conocimiento más valioso del Banco se había sistematizado, pero de forma invisible, individual y sin garantías de continuidad.",
+    "Lo que durante años fue una señal débil se había vuelto, sin que nadie lo decidiera, la forma real de trabajar.",
+    "La plataforma oficial seguía existiendo, pero el conocimiento que importaba ya circulaba por otros canales.",
+    "Nadie había tomado una mala decisión; simplemente cada quien resolvió su problema por su cuenta, y el agregado cambió al Banco.",
+    "El Banco descubrió que su mayor activo de conocimiento se había vuelto, también, su punto ciego más grande."
+  ];
+  const consequences = [
+    "Directivos del área de Conocimiento reconocen que la plataforma ganó visibilidad institucional pero perdió la batalla de la utilidad cotidiana.",
+    "El episodio reabrió una discusión incómoda sobre quién es realmente dueño del conocimiento del Banco.",
+    "Algunas oficinas lo celebran como autonomía; otras lo viven como una pérdida silenciosa de memoria institucional.",
+    "El área de gobernanza pidió tiempo para responder, consciente de que cualquier medida llega tarde.",
+    "Por primera vez, el debate dejó de ser técnico y pasó a ser sobre confianza y control."
+  ];
+  const closers = [
+    "la pregunta de fondo sigue abierta: qué llega a ser el KP cuando el conocimiento ya vive —y se mueve— en otra parte.",
+    "queda una duda que nadie en el Banco se anima a responder en voz alta: ¿el KP es todavía necesario, o solo familiar?",
+    "lo que está en juego no es la tecnología, sino qué papel le queda a una plataforma central en un mundo descentralizado.",
+    "la institución tendrá que decidir si persigue ese conocimiento disperso o aprende a gobernarlo donde está.",
+    "el futuro del KP dependerá menos de lo que pueda hacer y más de lo que decida dejar de intentar."
+  ];
+
+  const hl = rand(highlights);
+  const cons = rand(consequences);
+  const closer = rand(closers);
+
   // Paragraph 1 — the concrete news event in 2030, born from the field signal
   const p1 = `Una revisión interna del Banco confirmó esta semana lo que muchos sospechaban: ${lc(field.t)}. El hallazgo — que involucra a más de ${num} equipos y deja la plataforma oficial con apenas ${pct}% de adopción activa — llega en un 2030 donde ${lc(ext.t)} ya es la norma del sector.`;
 
-  // Paragraph 2 — how the WORLD signal made it inevitable + a fictional quote
-  const p2 = `${ext.d ? firstSentence(ext.d) : ""} En ese contexto, ${lc(field.d ? firstSentence(field.d) : field.t)} <strong>El conocimiento más valioso del Banco se había sistematizado, pero de forma invisible, individual y sin garantías de continuidad.</strong> «Cada uno de esos casos era, en realidad, un KP que sí funcionaba para alguien», declaró ${name}, ${role}.`;
+  // Paragraph 2 — how the WORLD signal made it inevitable + a fictional quote (highlight varies)
+  const p2 = `${ext.d ? firstSentence(ext.d) : ""} En ese contexto, ${lc(field.d ? firstSentence(field.d) : field.t)} <strong>${hl}</strong> «${quote}», declaró ${name}, ${role}.`;
 
-  // Paragraph 3 — consequence and open tension (no bet, just the scenario)
-  const p3 = `Directivos del área de Conocimiento reconocen que la plataforma ganó visibilidad institucional pero perdió la batalla de la utilidad cotidiana. Por ahora, la pregunta de fondo sigue abierta: qué llega a ser el KP cuando el conocimiento ya vive —y se mueve— en otra parte.`;
+  // Paragraph 3 — consequence and open tension (varies)
+  const p3 = `${cons} Por ahora, ${closer}`;
 
   const standfirst = `Una revisión interna revela un patrón que el Banco ya no puede ignorar — y deja la plataforma oficial con apenas ${pct}% de adopción activa.`;
 
   const questions = [
     `Si este futuro fuera real, ¿lo que hacemos hoy con el KP construye hacia él o en su contra?`,
-    `¿Qué tendríamos que empezar —o dejar— de hacer este trimestre para que esta apuesta sea posible?`,
+    `¿Qué tendríamos que empezar —o dejar— de hacer este trimestre frente a este escenario?`,
     `En este escenario alguien pierde algo. ¿Quién, y cómo lo acompañamos?`
   ];
 
